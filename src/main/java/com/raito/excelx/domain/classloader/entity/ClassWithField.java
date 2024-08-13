@@ -1,8 +1,7 @@
 package com.raito.excelx.domain.classloader.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.Comment;
 
 /**
@@ -15,6 +14,9 @@ import org.hibernate.annotations.Comment;
 @Data
 @Entity(name = "class_with_field")
 @Comment("类和字段关联表")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ClassWithField {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,5 +35,10 @@ public class ClassWithField {
     private Field field;
 
     @Comment("字段名")
+    @Column(nullable = false)
     private String fieldName;
+
+    @Comment("字段描述")
+    @Lob
+    private String fieldDescription;
 }

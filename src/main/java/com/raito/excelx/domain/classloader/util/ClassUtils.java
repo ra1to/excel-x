@@ -3,10 +3,7 @@ package com.raito.excelx.domain.classloader.util;
 import com.raito.excelx.domain.classloader.entity.Class;
 import com.raito.excelx.domain.classloader.entity.ClassWithField;
 import com.raito.excelx.domain.classloader.entity.Field;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtField;
-import javassist.CtNewConstructor;
+import javassist.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +33,8 @@ public class ClassUtils {
         // Optionally add a default constructor
         ctClass.addConstructor(CtNewConstructor.defaultConstructor(ctClass));
 
+        buildToString(ctClass, classWithFields);
+
         // Write class to bytecode
         byte[] byteCode = ctClass.toBytecode();
 
@@ -45,13 +44,34 @@ public class ClassUtils {
         return dynamicClass;
     }
 
+    private static void buildToString(CtClass ctClass, List<ClassWithField> classWithFields) throws CannotCompileException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("public String toString() {")
+                .append("StringBuilder sb = new StringBuilder();")
+                .append("sb.append(\"").append(ctClass.getName()).append("{\");");
+
+        for (ClassWithField classWithField : classWithFields) {
+            String fieldName = classWithField.getFieldName();
+            sb.append("sb.append(\"").append(fieldName).append("=\").append(").append(fieldName).append(");");
+            sb.append("sb.append(\", \");");
+        }
+        // Remove the trailing comma and space
+        sb.append("if (sb.length() > ").append("0) sb.setLength(sb.length() - 2);");
+        sb.append("sb.append(\"}\");")
+                .append("return sb.toString();")
+                .append("}");
+
+        CtMethod ctMethod = CtNewMethod.make(sb.toString(), ctClass);
+        ctClass.addMethod(ctMethod);
+    }
+
     public static java.lang.Class<?> getClass(String name) throws ClassNotFoundException {
 
         return classLoader.findClass(name);
     }
 
     private static class MyClassLoader extends ClassLoader {
-        private static Map<String, java.lang.Class<?>> classCache = new HashMap<>();
+        private static final Map<String, java.lang.Class<?>> classCache = new HashMap<>();
 
         @Override
         public java.lang.Class<?> findClass(String name) throws ClassNotFoundException {

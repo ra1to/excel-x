@@ -2,7 +2,7 @@ spring:
   application:
     name: excel
   profiles:
-    active: dev
+    active: test
   jpa:
     hibernate:
       ddl-auto: update
